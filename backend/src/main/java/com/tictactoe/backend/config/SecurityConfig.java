@@ -32,4 +32,4 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults());
         return http.build();
     }
-}[bool]$env:DB_PASSWORD
+}

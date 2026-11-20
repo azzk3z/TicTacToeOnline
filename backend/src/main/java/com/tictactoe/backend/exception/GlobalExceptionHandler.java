@@ -46,29 +46,67 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    
     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicate(DuplicateResourceException ex,
-                                                         HttpServletRequest request) {
-        ErrorResponse body = ErrorResponse.of(
+    public ResponseEntity<ErrorResponse> handleDuplicate(
+            DuplicateResourceException ex,
+            HttpServletRequest request) {
+
+        Map<String, String> fieldErrors = ex.getField() == null
+                ? null
+                : Map.of(ex.getField(), ex.getMessage());
+
+        ErrorResponse body = ErrorResponse.withFieldErrors(
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
                 ex.getMessage(),
-                request.getRequestURI());
+                request.getRequestURI(),
+                fieldErrors
+        );
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+
     // Trường hợp hai request đăng ký trùng nhau cùng lúc, vượt qua bước kiểm tra ở service
+    
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleIntegrity(DataIntegrityViolationException ex,
-                                                         HttpServletRequest request) {
-        log.warn("Vi phạm ràng buộc dữ liệu: {}", ex.getMostSpecificCause().getMessage());
-        ErrorResponse body = ErrorResponse.of(
+    public ResponseEntity<ErrorResponse> handleIntegrity(
+            DataIntegrityViolationException ex,
+            HttpServletRequest request) {
+
+        String detail = String.valueOf(
+                ex.getMostSpecificCause().getMessage()
+        );
+
+        log.warn("Vi phạm ràng buộc dữ liệu: {}", detail);
+
+        String field = null;
+        String message = "Dữ liệu đã tồn tại hoặc vi phạm ràng buộc";
+
+        if (detail.contains("uk_users_username")) {
+            field = "username";
+            message = "Username đã được sử dụng";
+        } else if (detail.contains("uk_users_email")) {
+            field = "email";
+            message = "Email đã được sử dụng";
+        }
+
+        Map<String, String> fieldErrors = field == null
+                ? null
+                : Map.of(field, message);
+
+        ErrorResponse body = ErrorResponse.withFieldErrors(
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
-                "Dữ liệu đã tồn tại hoặc vi phạm ràng buộc",
-                request.getRequestURI());
+                message,
+                request.getRequestURI(),
+                fieldErrors
+        );
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {

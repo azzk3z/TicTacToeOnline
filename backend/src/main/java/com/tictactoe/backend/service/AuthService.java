@@ -27,12 +27,23 @@ public class AuthService {
         String username = request.username();
         String email = request.email().trim().toLowerCase(Locale.ROOT);
 
+       
+
         if (userRepository.existsByUsernameIgnoreCase(username)) {
-            throw new DuplicateResourceException("Username đã được sử dụng");
+            throw new DuplicateResourceException(
+                    "username",
+                    "Username đã được sử dụng"
+            );
         }
+
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new DuplicateResourceException("Email đã được sử dụng");
+            throw new DuplicateResourceException(
+                    "email",
+                    "Email đã được sử dụng"
+            );
         }
+
+
 
         String displayName = (request.displayName() == null || request.displayName().isBlank())
                 ? username
