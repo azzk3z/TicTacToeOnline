@@ -1,0 +1,11 @@
+# Chưa đưa Frontend lên GitHub
+/frontend/
+
+# Các file chứa thông tin bí mật
+.env
+.env.*
+!.env.example
+
+# File hệ thống
+.DS_Store
+Thumbs.db

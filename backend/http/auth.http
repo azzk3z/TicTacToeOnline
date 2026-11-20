@@ -1,0 +1,46 @@
+### 1. Đăng ký hợp lệ
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "player_one",
+  "email": "Player.One@Example.com",
+  "password": "Secret123",
+  "displayName": "Người chơi 1"
+}
+
+### 2. Trùng username (đổi email)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "PLAYER_ONE",
+  "email": "other@example.com",
+  "password": "Secret123"
+}
+
+### 3. Trùng email (đổi username)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "player_two",
+  "email": "player.one@example.com",
+  "password": "Secret123"
+}
+
+### 4. Dữ liệu sai (nhiều lỗi cùng lúc)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "a b",
+  "email": "khong-phai-email",
+  "password": "123"
+}
+
+### 5. Body JSON hỏng
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{ "username":
