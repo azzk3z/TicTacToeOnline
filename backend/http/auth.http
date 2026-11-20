@@ -1,13 +1,15 @@
-### 1. Đăng ký hợp lệ
+
+### 1. Đăng ký hợp lệ - tài khoản mới
 POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "player_one",
-  "email": "Player.One@Example.com",
+  "username": "player_new_20112026_01",
+  "email": "player_new_20112026_01@example.com",
   "password": "Secret123",
-  "displayName": "Người chơi 1"
+  "displayName": "Người chơi mới"
 }
+
 
 ### 2. Trùng username (đổi email)
 POST http://localhost:8080/api/auth/register
