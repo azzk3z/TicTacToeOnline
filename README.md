@@ -26,6 +26,25 @@ npm.cmd run dev
 
 Mở http://localhost:5173/. Vite chuyển tiếp `/api` đến backend ở cổng `8080`.
 
+## Chạy unit test
+
+Backend dùng JUnit 5 và Mockito trong profile Maven `unit`. Unit test mô phỏng repository và dịch vụ email, nên chạy được khi chưa khởi động PostgreSQL hoặc SMTP.
+
+```powershell
+cd D:\TicTacToeOnline\backend
+mvn.cmd -Punit test
+```
+
+Sau khi cấu hình PostgreSQL như ở phần chạy backend, dùng `mvn.cmd test` để chạy thêm test tích hợp `BackendApplicationTests`. Lệnh này dùng phiên bản JUnit mặc định của Spring Boot.
+
+Frontend dùng Vitest và React Testing Library. Các test mô phỏng HTTP và chạy trong jsdom.
+
+```powershell
+cd D:\TicTacToeOnline\frontend
+npm.cmd ci
+npm.cmd test
+```
+
 ## Thử phòng chờ với hai tài khoản
 
 1. Đăng nhập bằng tài khoản thứ nhất, chọn **Tạo phòng mới** và sao chép mã.
