@@ -6,11 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,6 +58,15 @@ public class GlobalExceptionHandler {
     }
 
     
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleStatus(ResponseStatusException ex, HttpServletRequest request) {
+        HttpStatusCode status = ex.getStatusCode();
+        HttpStatus namedStatus = HttpStatus.resolve(status.value());
+        String error = namedStatus == null ? "HTTP " + status.value() : namedStatus.getReasonPhrase();
+        ErrorResponse body = ErrorResponse.of(status.value(), error, ex.getReason(), request.getRequestURI());
+        return ResponseEntity.status(status).headers(ex.getHeaders()).body(body);
+    }
+
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicate(
             DuplicateResourceException ex,

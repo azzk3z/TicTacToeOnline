@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { api, ApiError, backendUnavailable } from './api'
+import { BoardArt, Brand } from './Brand'
+import GameHome from './GameHome'
 import './App.css'
 
 const screens = {
@@ -29,47 +32,6 @@ const authPaths = {
   reset: 'reset-password',
 }
 
-const backendUnavailable = import.meta.env.DEV
-  ? 'Không kết nối được với backend ở cổng 8080. Hãy khởi động backend rồi thử lại.'
-  : 'Máy chủ tạm thời không khả dụng. Vui lòng thử lại sau.'
-
-const apiErrorMessages = {
-  403: 'Yêu cầu đã hết hiệu lực. Vui lòng thử lại.',
-  502: backendUnavailable,
-}
-
-class ApiError extends Error {
-  constructor(status, payload) {
-    super(payload?.message || apiErrorMessages[status] || 'Yêu cầu thất bại. Vui lòng thử lại.')
-    this.status = status
-    this.fields = payload?.fieldErrors || {}
-  }
-}
-
-async function api(path, { method = 'GET', body, signal } = {}) {
-  const headers = { Accept: 'application/json' }
-  if (method === 'POST' && path !== 'register') {
-    const { headerName, token } = await api('csrf')
-    headers[headerName] = token
-  }
-  if (body) {
-    headers['Content-Type'] = 'application/json'
-  }
-
-  const response = await fetch('/api/auth/' + path, {
-    method,
-    headers,
-    signal,
-    body: body ? JSON.stringify(body) : undefined,
-  })
-  const contentType = response.headers.get('content-type')
-  const payload = contentType?.includes('application/json') ? await response.json() : null
-  if (!response.ok) {
-    throw new ApiError(response.status, payload)
-  }
-  return payload
-}
-
 function readResetToken() {
   return new URLSearchParams(window.location.hash.slice(1)).get('reset')
 }
@@ -89,22 +51,6 @@ function Field({ label, name, errors, ...input }) {
       />
       {error && <span className="field-error" id={name + '-error'}>{error}</span>}
     </div>
-  )
-}
-
-function BoardArt() {
-  const marks = ['x', '', 'o', '', 'x', '', 'o', '', 'x']
-  return (
-    <aside className="board-art" aria-hidden="true">
-      <div className="board-grid">
-        {marks.map((mark, index) => (
-          <div className="board-tile" key={index}>
-            {mark && <span className={'board-mark mark-' + mark} />}
-          </div>
-        ))}
-        <span className="winning-line" />
-      </div>
-    </aside>
   )
 }
 
@@ -139,7 +85,7 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController()
-    api('me', { signal: controller.signal })
+    api('auth/me', { signal: controller.signal })
       .then(setUser)
       .catch((failure) => {
         if (!controller.signal.aborted && failure.status !== 401) {
@@ -154,7 +100,7 @@ function App() {
     return () => controller.abort()
   }, [])
 
-  function changeScreen(next, message = '') {
+  const changeScreen = useCallback((next, message = '') => {
     setError('')
     setFieldErrors({})
     setNotice(message)
@@ -162,7 +108,12 @@ function App() {
     if (next !== 'reset') {
       setResetToken(null)
     }
-  }
+  }, [])
+
+  const expireSession = useCallback(() => {
+    setUser(null)
+    changeScreen('login', 'Phiên đăng nhập đã hết hiệu lực. Hãy đăng nhập lại.')
+  }, [changeScreen])
 
   function showFailure(failure) {
     const message = failure instanceof ApiError ? failure.message : backendUnavailable
@@ -188,7 +139,7 @@ function App() {
 
     setBusy(true)
     try {
-      const account = await api(authPaths[screen], { method: 'POST', body })
+      const account = await api('auth/' + authPaths[screen], { method: 'POST', body })
       if (screen === 'register') {
         setIdentifier(account.username)
         changeScreen('login', 'Tạo tài khoản thành công. Bạn có thể đăng nhập.')
@@ -212,7 +163,7 @@ function App() {
     setBusy(true)
     setError('')
     try {
-      await api('logout', { method: 'POST' })
+      await api('auth/logout', { method: 'POST' })
       setUser(null)
       changeScreen('login')
     } catch (failure) {
@@ -222,34 +173,24 @@ function App() {
     }
   }
 
+  if (!loading && user && screen !== 'reset') {
+    return (
+      <GameHome key={user.id} user={user} onLogout={logout} signingOut={busy}
+        accountError={error} onSessionExpired={expireSession} />
+    )
+  }
+
   const active = screens[screen]
-  const showAccount = user && screen !== 'reset'
   const invalidResetLink = screen === 'reset' && !/^[A-Za-z0-9_-]{43}$/.test(resetToken || '')
   const linkError = invalidResetLink ? 'Liên kết đặt lại mật khẩu không hợp lệ.' : fieldErrors.token
 
   return (
     <main className="auth-layout">
       <section className="auth-panel" aria-labelledby="screen-title">
-        <div className="brand">
-          <span className="brand-icon" aria-hidden="true"><span className="mark-x" /><span className="mark-o" /></span>
-          Tic Tac Toe
-        </div>
+        <Brand />
         <div className="auth-content">
           {loading ? (
             <h1 id="screen-title" role="status">Đang tải…</h1>
-          ) : showAccount ? (
-            <>
-              <h1 id="screen-title">Chào, {user.displayName}!</h1>
-              <p className="intro">Bạn đã đăng nhập.</p>
-              <dl className="account-details">
-                <dt>Tên đăng nhập</dt><dd>{user.username}</dd>
-                <dt>Email</dt><dd>{user.email}</dd>
-              </dl>
-              {error && <p className="feedback feedback-error" role="alert">{error}</p>}
-              <button className="primary-button" type="button" onClick={logout} disabled={busy}>
-                {busy ? 'Đang đăng xuất…' : 'Đăng xuất'}
-              </button>
-            </>
           ) : (
             <>
               <h1 id="screen-title">{active.title}</h1>

@@ -116,20 +116,6 @@ h1 {
 .feedback-error { border-color: #74423e; color: #ffd0ca; background: #342321; }
 .feedback-success { border-color: #49604e; color: #d1ead4; background: #242e26; }
 
-.account-details {
-  display: grid;
-  gap: 5px;
-  margin: 0 0 24px;
-  padding: 16px;
-  border: 1px solid #62564d;
-  border-radius: 9px;
-  background: #24201e;
-}
-
-.account-details dt { color: var(--muted); font-size: .85rem; }
-.account-details dd { margin: 0; overflow-wrap: anywhere; }
-.account-details dd + dt { margin-top: 10px; }
-
 .board-art {
   display: grid;
   place-items: center;

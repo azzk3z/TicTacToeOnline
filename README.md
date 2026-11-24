@@ -2,6 +2,8 @@
 
 Giao diện tài khoản gồm đăng ký, đăng nhập bằng tên đăng nhập hoặc email, đăng xuất và đặt lại mật khẩu.
 
+Sau khi đăng nhập, bạn có thể tạo phòng riêng hoặc tham gia bằng mã 8 ký tự. Phòng chờ hiển thị tối đa hai người chơi và tự cập nhật khi có người vào hoặc rời phòng.
+
 ## Chạy trên Windows
 
 Cần JDK 25, Maven, Node.js và PostgreSQL. Backend dùng database `tictactoe_db` trên cổng `5432` với tài khoản `postgres`. Chạy `CREATE DATABASE tictactoe_db;` nếu database chưa có.
@@ -23,6 +25,12 @@ npm.cmd run dev
 ```
 
 Mở http://localhost:5173/. Vite chuyển tiếp `/api` đến backend ở cổng `8080`.
+
+## Thử phòng chờ với hai tài khoản
+
+1. Đăng nhập bằng tài khoản thứ nhất, chọn **Tạo phòng mới** và sao chép mã.
+2. Mở trình duyệt khác hoặc cửa sổ ẩn danh, đăng nhập bằng tài khoản thứ hai rồi nhập mã và chọn **Vào phòng**.
+3. Sau khi cả hai tài khoản xuất hiện trong phòng chờ, thử tải lại trang để trở về phòng hiện tại. Khi người chơi thứ hai rời phòng, người khác có thể vào thế chỗ. Khi chủ phòng rời hoặc đăng xuất, phòng đóng và người chơi còn lại trở về trang chủ.
 
 ## Bật email đặt lại mật khẩu
 

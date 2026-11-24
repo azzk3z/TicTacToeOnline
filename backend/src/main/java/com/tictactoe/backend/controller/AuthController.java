@@ -8,6 +8,7 @@ import com.tictactoe.backend.dto.auth.ResetPasswordRequest;
 import com.tictactoe.backend.dto.user.UserResponse;
 import com.tictactoe.backend.entity.User;
 import com.tictactoe.backend.service.AuthService;
+import com.tictactoe.backend.service.GameRoomService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,10 +29,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtSessions sessions;
+    private final GameRoomService rooms;
 
-    public AuthController(AuthService authService, JwtSessions sessions) {
+    public AuthController(AuthService authService, JwtSessions sessions, GameRoomService rooms) {
         this.authService = authService;
         this.sessions = sessions;
+        this.rooms = rooms;
     }
 
     @PostMapping("/register")
@@ -59,7 +62,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal User user) {
+        if (user != null) {
+            rooms.leave(user.getId());
+        }
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, sessions.clear().toString())
                 .build();

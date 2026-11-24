@@ -21,6 +21,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findFirstByEmailIgnoreCaseOrderByIdAsc(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<User> findLockedById(Long id);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<User> findLockedByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
