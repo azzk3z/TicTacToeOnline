@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -34,6 +35,15 @@ public class User {
 
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
+
+    @Column(name = "credentials_version")
+    private Long credentialsVersion;
+
+    @Column(name = "password_reset_token_hash", length = 64, unique = true)
+    private String passwordResetTokenHash;
+
+    @Column(name = "password_reset_expires_at")
+    private Instant passwordResetExpiresAt;
 
     @Column(name = "display_name", length = 50)
     private String displayName;
@@ -93,6 +103,26 @@ public class User {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+        this.credentialsVersion = getCredentialsVersion() + 1;
+        this.passwordResetTokenHash = null;
+        this.passwordResetExpiresAt = null;
+    }
+
+    public long getCredentialsVersion() {
+        return credentialsVersion == null ? 0 : credentialsVersion;
+    }
+
+    public boolean hasResetTokenExpiringAfter(Instant cutoff) {
+        return passwordResetExpiresAt != null && passwordResetExpiresAt.isAfter(cutoff);
+    }
+
+    public boolean canResetPassword(String tokenHash, Instant now) {
+        return Objects.equals(passwordResetTokenHash, tokenHash) && hasResetTokenExpiringAfter(now);
+    }
+
+    public void setPasswordResetToken(String tokenHash, Instant expiresAt) {
+        this.passwordResetTokenHash = tokenHash;
+        this.passwordResetExpiresAt = expiresAt;
     }
 
     public String getDisplayName() {

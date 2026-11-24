@@ -46,6 +46,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorResponse> handleAuth(AuthException ex, HttpServletRequest request) {
+        HttpStatus status = ex.getStatus();
+        Map<String, String> fieldErrors = ex.getField() == null ? null : Map.of(ex.getField(), ex.getMessage());
+        ErrorResponse body = ErrorResponse.withFieldErrors(
+                status.value(), status.getReasonPhrase(), ex.getMessage(), request.getRequestURI(), fieldErrors);
+        return ResponseEntity.status(status).body(body);
+    }
+
     
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicate(

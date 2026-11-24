@@ -1,6 +1,3 @@
-# Chưa đưa Frontend lên GitHub
-/frontend/
-
 # Các file chứa thông tin bí mật
 .env
 .env.*
